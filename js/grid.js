@@ -51,12 +51,12 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     /* Return the amount of spaces below this position */
-    emptySpacesBelow(row, col) {
+    getEmptySpacesBelow(row, col) {
         let spaces = 0;
 
         if (row != this.config.rows) {
             for (let r=row+1; r<this.config.rows; r++) {
-                if (this.tiles[r][col].isEmpty) {
+                if (this.isEmptyAt(r, col)) {
                     spaces++;
                 }
             }
@@ -80,8 +80,8 @@ class Grid extends Phaser.GameObjects.Container {
         /* -2 because the last row can't fall */
         for(let row=this.config.rows-2; row >= 0; row--) {
             for(let col=0; col<this.config.cols; col++) {
-                let emptySpaces = this.emptySpacesBelow(row, col);
-                if (!this.tiles[row][col].isEmpty && emptySpaces > 0) {
+                let emptySpaces = this.getEmptySpacesBelow(row, col);
+                if (!this.isEmptyAt(row, col) && emptySpaces > 0) {
                     /* Swap this tile to its destination */
                     this.swapTiles(row, col, row + emptySpaces, col);
 
@@ -103,8 +103,8 @@ class Grid extends Phaser.GameObjects.Container {
         let movements = [];
 
         for (let i=0; i<this.config.cols; i++) {
-            if (this.tiles[0][i].isEmpty) {
-                let emptySpaces = this.emptySpacesBelow(0, i) + 1;
+            if (this.isEmptyAt(0, i)) {
+                let emptySpaces = this.getEmptySpacesBelow(0, i) + 1;
                 for (let j=0; j<emptySpaces; j++) {
                     movements.push({
                         row: j,
@@ -153,7 +153,7 @@ class Grid extends Phaser.GameObjects.Container {
             tile.y = this.config.size * (movement.row - movement.deltaRow + 1) - this.config.size / 2;
             tile.x = this.config.size * movement.col + this.config.size / 2;
             
-            tile.setFrame(this.tiles[movement.row][movement.col].value);
+            tile.setFrame(this.getValueAt(movement.row, movement.col));
             this.setTile(movement.row, movement.col, tile);
 
             this.scene.tweens.add({
@@ -174,7 +174,7 @@ class Grid extends Phaser.GameObjects.Container {
 
     /* Mark the removed tiles as empty (to allow the falling process) */
     removeConnectedTiles(row, col) {
-        let tiles = this.listConnectedTiles(row, col);
+        let tiles = this.getConnectedTiles(row, col);
 
         tiles.forEach(function(tile) {
             this.tiles[tile.row][tile.col].isEmpty = true;
@@ -182,13 +182,22 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     /* Return if this tile is within boundaries and is valid */
-    validPick(row, col) {
+    isValidTile(row, col) {
         return row >= 0 && row < this.config.rows && col >= 0 && col < this.config.cols && this.tiles[row] != undefined && this.tiles[row][col] != undefined;
+    }
+
+    /* Return if this tile is empty */
+    isEmptyAt(row, col) {
+        if (!this.isValidTile(row, col)) {
+            return false;
+        }
+
+        return this.tiles[row][col].isEmpty;
     }
 
     /* Return the value of this tile if it's valid */
     getValueAt(row, col) {
-        if (!this.validPick(row, col)) {
+        if (!this.isValidTile(row, col)) {
             return false;
         }
 
@@ -197,31 +206,39 @@ class Grid extends Phaser.GameObjects.Container {
 
     /* Save the current tile object for future reference */
     setTile(row, col, tile) {
-        if (this.validPick(row, col)) {
+        if (this.isValidTile(row, col)) {
             this.tiles[row][col].tile = tile;
         }
     }
 
-    /* Flood fill the array at this position with this value */
+    /* Flood fill all the adjacent tiles of the same value */
     floodFill(row, col, value, tiles) {
         if (tiles == undefined) {
             tiles = [];
         }
 
-        if (!this.validPick(row, col) || this.tiles[row][col].isEmpty) {
+        /* Do not add invalid of empty tiles */
+        if (!this.isValidTile(row, col) || this.isEmptyAt(row, col)) {
             return tiles;
         }
 
-        if (this.getValueAt(row, col) != value || this.alreadyVisited(row, col, tiles)) {
+        /* Only add tile with the same value */
+        if (this.getValueAt(row, col) != value) {
             return tiles;
         }
 
+        /* Only add unvisited tiles */
+        if (tiles.filter(single_tile => single_tile.row == row && single_tile.col == col).length > 0) {
+            return tiles
+        }
+
+        /* Add this tile to our list */
         tiles.push({
             row: row,
             col: col
         });
 
-        /* Recursive floodFill with adjacent neighboors */
+        /* Recursively flood fill adjacent neighboors */
         for (let y=-1; y<=1; y++) {
             for (let x=-1; x<=1; x++) {
                 if (Math.abs(x) != Math.abs(y)) {
@@ -233,33 +250,14 @@ class Grid extends Phaser.GameObjects.Container {
         return tiles;
     }
 
-    /* Verify is this tile is already in the floodFill array */
-    alreadyVisited(row, col, tiles) {
-        let found = false;
-
-        /* @TODO: Use filters instead */
-        tiles.forEach(function(tile) {
-            if (tile.row == row && tile.col == col) {
-                found = true;
-            }
-        });
-
-        return found;
-    }
-
     /* Get all connected tiles at this position */
-    listConnectedTiles(row, col) {
+    getConnectedTiles(row, col) {
         /* If it's not valid or empty */
-        if (!this.validPick(row, col) || this.tiles[row][col].isEmpty) {
+        if (!this.isValidTile(row, col) || this.isEmptyAt(row, col)) {
             return [];
         }
 
         return this.floodFill(row, col, this.getValueAt(row, col));
-    }
-
-    /* Get the total connected tiles at this position */
-    countConnectedTiles(row, col) {
-        return this.listConnectedTiles(row, col).length;
     }
 
     /* Allow the interaction back after the tiles are moved */
@@ -268,6 +266,7 @@ class Grid extends Phaser.GameObjects.Container {
 
         this.emit("INTERACTION_REACTIVATE", this);
     }
+
 
     /* Events */
 
@@ -282,23 +281,24 @@ class Grid extends Phaser.GameObjects.Container {
         let col = Math.floor((pointer.x - this.x) / this.config.size);
 
         /* Only if it's a valid tile */
-        if (!this.validPick(row, col)) {
+        if (!this.isValidTile(row, col)) {
             return;
         }
 
+        let connectedTiles = this.getConnectedTiles(row, col);
+
         /* Only if the connected tiles is bigger than the minimum required */
-        if (this.countConnectedTiles(row, col) < this.config.minTilesConnected) {
+        if (connectedTiles < this.config.minTilesConnected) {
             return;
         }
 
         this.setInteractive(false);
 
-        let tilesRemoved = this.listConnectedTiles(row, col);
         let removed = 0;
 
-        this.emit("TILES_REMOVED", this, tilesRemoved.length, this.tiles[row][col].value);
+        this.emit("TILES_REMOVED", this, connectedTiles.length, this.getValueAt(row, col));
 
-        tilesRemoved.forEach(function(tile) {
+        connectedTiles.forEach(function(tile) {
             removed++;
             this.pool.push(this.tiles[tile.row][tile.col].tile);
 
