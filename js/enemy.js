@@ -17,9 +17,19 @@ class Enemy extends Player {
     }
 
     isReady() {
-    	this.delay = Math.max(0, this.delay - 1);
+    	this.setDelay(Math.max(0, this.delay - 1))
 
     	return this.delay == 0;
+    }
+
+    setDelay(amount) {
+    	this.delay = amount;
+
+    	this.txt_delay.text = "Delai:" + this.delay + "/" + this.maxDelay;
+    }
+
+    reset() {
+    	this.setDelay(this.maxDelay);
     }
 
 };

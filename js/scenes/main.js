@@ -57,10 +57,38 @@ class MainScene extends Phaser.Scene {
     /* Events */
 
     onGridInteractionReactivated(grid) {
-        if (this.enemy.isReady()) {
-            /* Prevent the player to select a tile */
-            this.grid.setInteractive(false);
+        if (!this.player.isAlive()) {
+            alert("Player is dead!");
+            return;
         }
+
+        if (!this.enemy.isAlive()) {
+            alert("Enemy is dead!");
+            return;
+        }
+
+        /* The enemy is not ready to attack */
+        if (!this.enemy.isReady()) {
+            return;
+        }
+            
+        /* Prevent the player to select a tile */
+        this.grid.setInteractive(false);
+
+        /* Shake the screen and flash red */
+        this.cameras.main.shake(500);
+        this.cameras.main.flash(500, 255, 0, 0);
+
+        this.enemy.reset();
+
+        if (this.player.defense >= this.enemy.attack) {
+            this.player.setDefense(this.player.defense - this.enemy.attack);
+        } else {
+            this.player.damage(this.enemy.attack - this.player.defense);
+            this.player.setDefense(0)
+        }
+
+        this.grid.setInteractive(true);
     }
 
     onGridTilesRemoved(grid, totalTiles, item) {
@@ -78,6 +106,8 @@ class MainScene extends Phaser.Scene {
 
         if (amounts['atk'] != undefined) {
             this.player.setAttack(amounts['atk']);
+
+            this.enemy.damage(amounts['atk']);
         }
 
         if (amounts['def'] != undefined) {

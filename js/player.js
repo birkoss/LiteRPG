@@ -54,16 +54,26 @@ class Player extends Phaser.GameObjects.Container {
         this.txt_defense.text = "Def:" + this.defense;
     }
 
+    updateHealth() {
+        this.txt_health.text = "HP:" + this.health + "/" + this.maxHealth;
+    }
+
     damage(amount) {
         this.health = Math.max(0, this.health - amount);
+        this.updateHealth();
     }
 
     heal(amount) {
         this.health = Math.min(this.maxHealth, this.health + amount);
+        this.updateHealth();
     }
 
     animate() {
         this.background.anims.play(this.unitId);
+    }
+
+    isAlive() {
+        return this.health > 0;
     }
 
     face(newDirection) {
