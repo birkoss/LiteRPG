@@ -65,7 +65,7 @@ class Grid extends Phaser.GameObjects.Container {
         return spaces;
     }
 
-    /* Swap the tile at the first position to the second position */
+    /* Swap two tiles in the main array */
     swapTiles(row1, col1, row2, col2) {
         let tile = Object.assign(this.tiles[row1][col1]);
 
@@ -74,7 +74,7 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     /* Get the tiles new position after the felt */
-    arrangeBoard() {
+    getFallingTilesMovements() {
         let movements = [];
 
         /* -2 because the last row can't fall */
@@ -82,7 +82,7 @@ class Grid extends Phaser.GameObjects.Container {
             for(let col=0; col<this.config.cols; col++) {
                 let emptySpaces = this.getEmptySpacesBelow(row, col);
                 if (!this.isEmptyAt(row, col) && emptySpaces > 0) {
-                    /* Swap this tile to its destination */
+                    /* Swap this tile to its new destination */
                     this.swapTiles(row, col, row + emptySpaces, col);
 
                     movements.push({
@@ -97,9 +97,8 @@ class Grid extends Phaser.GameObjects.Container {
         return movements;
     }
 
-
     /* Pick new values for the new tiles */
-    replenishBoard() {
+    getNewTilesMovements() {
         let movements = [];
 
         for (let i=0; i<this.config.cols; i++) {
@@ -121,12 +120,12 @@ class Grid extends Phaser.GameObjects.Container {
         return movements;
     }
 
-    /* Make existing and new tiles fall */
+    /* Make existing and new tiles fall into place, and allow the interaction when it's done */
     makeTilesFall() {
         let fallingTiles = 0;
 
-        let fallMovements = this.arrangeBoard();
-        let newMovements = this.replenishBoard();
+        let fallMovements = this.getFallingTilesMovements();
+        let newMovements = this.getNewTilesMovements();
 
         fallMovements.forEach(function(movement) {
             fallingTiles++;
@@ -267,7 +266,6 @@ class Grid extends Phaser.GameObjects.Container {
         this.emit("INTERACTION_REACTIVATE", this);
     }
 
-
     /* Events */
 
     /* Select the tiles at this position */
@@ -318,5 +316,4 @@ class Grid extends Phaser.GameObjects.Container {
             });
         }, this);
     }
-
 };
