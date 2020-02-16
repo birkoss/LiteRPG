@@ -203,31 +203,42 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     /* Flood fill the array at this position with this value */
-    floodFill(row, col, value) {
+    floodFill(row, col, value, tiles) {
+        if (tiles == undefined) {
+            tiles = [];
+        }
+
         if (!this.validPick(row, col) || this.tiles[row][col].isEmpty) {
-            return;
+            return tiles;
         }
 
-        if (this.getValueAt(row, col) != value || this.alreadyVisited(row, col)) {
-            return;
+        if (this.getValueAt(row, col) != value || this.alreadyVisited(row, col, tiles)) {
+            return tiles;
         }
 
-        this.floodFillTiles.push({
+        tiles.push({
             row: row,
             col: col
         });
 
-        this.floodFill(row + 1, col, value);
-        this.floodFill(row - 1, col, value);
-        this.floodFill(row, col + 1, value);
-        this.floodFill(row, col - 1, value);
+        /* Recursive floodFill with adjacent neighboors */
+        for (let y=-1; y<=1; y++) {
+            for (let x=-1; x<=1; x++) {
+                if (Math.abs(x) != Math.abs(y)) {
+                    this.floodFill(row + y, col + x, value, tiles);
+                }
+            }
+        }
+
+        return tiles;
     }
 
     /* Verify is this tile is already in the floodFill array */
-    alreadyVisited(row, col) {
+    alreadyVisited(row, col, tiles) {
         let found = false;
 
-        this.floodFillTiles.forEach(function(tile) {
+        /* @TODO: Use filters instead */
+        tiles.forEach(function(tile) {
             if (tile.row == row && tile.col == col) {
                 found = true;
             }
@@ -243,12 +254,7 @@ class Grid extends Phaser.GameObjects.Container {
             return [];
         }
 
-        this.floodFillTiles = [];
-        this.floodFillTiles.length = 0;
-
-        this.floodFill(row, col, this.getValueAt(row, col));
-
-        return this.floodFillTiles;
+        return this.floodFill(row, col, this.getValueAt(row, col));
     }
 
     /* Get the total connected tiles at this position */
