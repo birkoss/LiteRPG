@@ -29,8 +29,10 @@ class MainScene extends Phaser.Scene {
         this.add.existing(this.grid);
 
         this.grid.generate();
-
         this.grid.show();
+
+        this.grid.x = (this.sys.game.canvas.width - this.grid.getBounds().width) / 2;
+        this.grid.y = this.sys.game.canvas.height - this.grid.getBounds().height - this.grid.x;
 
         this.player = new Player(this, "knight", 100);
         this.player.animate();
@@ -43,5 +45,7 @@ class MainScene extends Phaser.Scene {
         this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width;
         this.enemy.y = this.enemy.background.getBounds().height;
         this.add.existing(this.enemy);
+
+        this.grid.setInteractive(true);
     }
 };

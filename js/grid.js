@@ -6,11 +6,11 @@ class Grid extends Phaser.GameObjects.Container {
         this.config = config;
 
         this.tiles = [];
-        this.pool = [];    /* To reuse removed tiles sprite */
+        this.pool = [];        /* To reuse removed tiles sprite */
 
-        this.canPick = false;
+        this.isInteractive = false;
 
-        this.scene.input.on("pointerdown", this.tileSelect, this);
+        this.scene.input.on("pointerdown", this.onTileSelected, this);
     }
 
     /* Generate the default grid */
@@ -43,12 +43,10 @@ class Grid extends Phaser.GameObjects.Container {
                 this.setTile(row, col, tile);
             }
         }
+    }
 
-        this.x = (this.scene.sys.game.canvas.width - this.getBounds().width) / 2;
-        this.y = this.x;
-        this.y = this.scene.sys.game.canvas.height - this.getBounds().height - this.x;
-
-        this.canPick = true;
+    setInteractive(state) {
+        this.isInteractive = state;
     }
 
     /* Return the amount of spaces below this position */
@@ -140,7 +138,7 @@ class Grid extends Phaser.GameObjects.Container {
                 onComplete: function() {
                     fallingTiles--;
                     if (fallingTiles == 0) {
-                        this.canPick = true;
+                        this.isInteractive = true;
                     }
                 }
             });
@@ -166,7 +164,7 @@ class Grid extends Phaser.GameObjects.Container {
                     fallingTiles--;
 
                     if (fallingTiles == 0) {
-                        this.canPick = true;
+                        this.isInteractive = true;
                     }
                 }
             });
@@ -258,9 +256,9 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     /* Select the tiles at this position */
-    tileSelect(pointer) {
+    onTileSelected(pointer) {
         /* Only if we can pick a tile */
-        if (!this.canPick) {
+        if (!this.isInteractive) {
             return;
         }
 
@@ -277,7 +275,7 @@ class Grid extends Phaser.GameObjects.Container {
             return;
         }
 
-        this.canPick = false;
+        this.setInteractive(false);
 
         let tilesRemoved = this.listConnectedTiles(row, col);
         let removed = 0;
