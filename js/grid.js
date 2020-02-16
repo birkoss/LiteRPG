@@ -20,7 +20,7 @@ class Grid extends Phaser.GameObjects.Container {
 
             for (let x=0; x<this.config.cols; x++) {
                 this.tiles[y][x] = {
-                    value: Phaser.Math.RND.between(0, this.config.items - 1),
+                    item: this.pickItems(),
                     isEmpty: false,
                     row: y,
                     col: x,
@@ -37,12 +37,20 @@ class Grid extends Phaser.GameObjects.Container {
                 let tile = new Tile(this.scene);
                 tile.x = (this.config.size * col) + (this.config.size / 2);
                 tile.y = (this.config.size * row) + (this.config.size / 2);
-                tile.setValue(this.getValueAt(row, col));
+                tile.setItem(this.getItemAt(row, col));
                 this.add(tile);
 
                 this.setTile(row, col, tile);
             }
         }
+    }
+
+    pickItems() {
+        let index = Phaser.Math.RND.between(0, this.config.items.length - 1);
+        return {
+            slot: index,
+            itemID: this.config.items[index]
+        };
     }
 
     /* Allow to change the grid interactive state (Can we select a tile to remove it) */
@@ -97,7 +105,7 @@ class Grid extends Phaser.GameObjects.Container {
         return movements;
     }
 
-    /* Pick new values for the new tiles */
+    /* Pick new items for the new tiles */
     getNewTilesMovements() {
         let movements = [];
 
@@ -111,7 +119,7 @@ class Grid extends Phaser.GameObjects.Container {
                         deltaRow: emptySpaces
                     });
 
-                    this.tiles[j][i].value = Phaser.Math.RND.between(0, this.config.items - 1);
+                    this.tiles[j][i].item = this.pickItems();
                     this.tiles[j][i].isEmpty = false;
                 }
             }
@@ -152,7 +160,7 @@ class Grid extends Phaser.GameObjects.Container {
             tile.y = this.config.size * (movement.row - movement.deltaRow + 1) - this.config.size / 2;
             tile.x = this.config.size * movement.col + this.config.size / 2;
             
-            tile.setValue(this.getValueAt(movement.row, movement.col));
+            tile.setItem(this.getItemAt(movement.row, movement.col));
             this.setTile(movement.row, movement.col, tile);
 
             this.scene.tweens.add({
@@ -194,13 +202,13 @@ class Grid extends Phaser.GameObjects.Container {
         return this.tiles[row][col].isEmpty;
     }
 
-    /* Return the value of this tile if it's valid */
-    getValueAt(row, col) {
+    /* Return the item of this tile if it's valid */
+    getItemAt(row, col) {
         if (!this.isValidTile(row, col)) {
             return false;
         }
 
-        return this.tiles[row][col].value;
+        return this.tiles[row][col].item;
     }
 
     /* Save the current tile object for future reference */
@@ -210,8 +218,8 @@ class Grid extends Phaser.GameObjects.Container {
         }
     }
 
-    /* Flood fill all the adjacent tiles of the same value */
-    floodFill(row, col, value, tiles) {
+    /* Flood fill all the adjacent tiles of the same item */
+    floodFill(row, col, itemID, tiles) {
         if (tiles == undefined) {
             tiles = [];
         }
@@ -221,8 +229,8 @@ class Grid extends Phaser.GameObjects.Container {
             return tiles;
         }
 
-        /* Only add tile with the same value */
-        if (this.getValueAt(row, col) != value) {
+        /* Only add tile with the same item */
+        if (this.getItemAt(row, col).itemID != itemID) {
             return tiles;
         }
 
@@ -241,7 +249,7 @@ class Grid extends Phaser.GameObjects.Container {
         for (let y=-1; y<=1; y++) {
             for (let x=-1; x<=1; x++) {
                 if (Math.abs(x) != Math.abs(y)) {
-                    this.floodFill(row + y, col + x, value, tiles);
+                    this.floodFill(row + y, col + x, itemID, tiles);
                 }
             }
         }
@@ -256,7 +264,7 @@ class Grid extends Phaser.GameObjects.Container {
             return [];
         }
 
-        return this.floodFill(row, col, this.getValueAt(row, col));
+        return this.floodFill(row, col, this.getItemAt(row, col).itemID);
     }
 
     /* Allow the interaction back after the tiles are moved */
@@ -286,7 +294,7 @@ class Grid extends Phaser.GameObjects.Container {
         let connectedTiles = this.getConnectedTiles(row, col);
 
         /* Only if the connected tiles is bigger than the minimum required */
-        if (connectedTiles < this.config.minTilesConnected) {
+        if (connectedTiles.length < this.config.minTilesConnected) {
             return;
         }
 
@@ -294,7 +302,7 @@ class Grid extends Phaser.GameObjects.Container {
 
         let removed = 0;
 
-        this.emit("TILES_REMOVED", this, connectedTiles.length, this.getValueAt(row, col));
+        this.emit("TILES_REMOVED", this, connectedTiles.length, this.getItemAt(row, col));
 
         connectedTiles.forEach(function(tile) {
             removed++;

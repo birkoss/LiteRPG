@@ -58,6 +58,10 @@ class Player extends Phaser.GameObjects.Container {
         this.health = Math.max(0, this.health - amount);
     }
 
+    heal(amount) {
+        this.health = Math.min(this.maxHealth, this.health + amount);
+    }
+
     animate() {
         this.background.anims.play(this.unitId);
     }

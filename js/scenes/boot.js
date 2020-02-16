@@ -14,6 +14,7 @@ class BootScene extends Phaser.Scene {
         this.load.bitmapFont('font:gui', 'assets/fonts/gui.png', 'assets/fonts/gui.xml');
         
         this.load.json('data:units', 'assets/units.json');
+        this.load.json('data:items', 'assets/items.json');
     }
  
     create() {

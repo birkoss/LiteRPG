@@ -6,16 +6,7 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
-        this.grid = new Grid(this, {
-            size: 50,           /* Size of each tile */
-            rows: 10,            /* Height of the grid */
-            cols: 7,        /* Width of the grid */
-            items: 4,          /* Number of different tiles */
-            destroySpeed: 200,
-            fallSpeed: 80,
-            minTilesConnected: 3 /* The minimum tiles connected to removed */
-        });
-
+        /* Generate units animations */
         let unitsData = this.cache.json.get('data:units');
         unitsData.forEach(single_data => {
             this.anims.create({
@@ -25,6 +16,18 @@ class MainScene extends Phaser.Scene {
                 repeat: -1
             });
         }, this);
+
+        this.inventory = ["shield", "potion", "dagger", "axe"];
+
+        this.grid = new Grid(this, {
+            size: 50,           /* Size of each tile */
+            rows: 10,            /* Height of the grid */
+            cols: 7,        /* Width of the grid */
+            destroySpeed: 200,
+            fallSpeed: 80,
+            minTilesConnected: 3, /* The minimum tiles connected to removed */
+            items: this.inventory
+        });
 
         this.add.existing(this.grid);
 
@@ -54,10 +57,37 @@ class MainScene extends Phaser.Scene {
     /* Events */
 
     onGridInteractionReactivated(grid) {
-        // @TODO : Change the ennemy delay
+        if (this.enemy.isReady()) {
+            /* Prevent the player to select a tile */
+            this.grid.setInteractive(false);
+        }
     }
 
-    onGridTilesRemoved(grid, totalTiles, tileValue) {
-        console.log("Removed " + totalTiles + " tiles @ " + tileValue);
+    onGridTilesRemoved(grid, totalTiles, item) {
+
+        let amounts = {};
+
+        /* Calculate all amounts from this items */
+        this.cache.json.get('data:items').forEach(single_data => {
+            if (single_data.id == item.itemID) {
+                for (let modifier in single_data.modifiers) {
+                    amounts[modifier] = single_data.modifiers[modifier] * (totalTiles - 1);
+                }
+            }
+        }, this);
+
+        if (amounts['atk'] != undefined) {
+            this.player.setAttack(amounts['atk']);
+        }
+
+        if (amounts['def'] != undefined) {
+            this.player.setDefense(amounts['def'] + this.player.defense);
+        }
+
+        if (amounts['hp'] != undefined) {
+            this.player.heal(amounts['hp']);
+        }
+
+        console.log(amounts);
     }
 };

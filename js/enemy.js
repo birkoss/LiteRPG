@@ -16,5 +16,10 @@ class Enemy extends Player {
         this.add(this.txt_delay);
     }
 
+    isReady() {
+    	this.delay = Math.max(0, this.delay - 1);
+
+    	return this.delay == 0;
+    }
 
 };

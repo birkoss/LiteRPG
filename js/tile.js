@@ -17,23 +17,13 @@ class Tile extends Phaser.GameObjects.Container {
         this.add(this.item);
     }
 
-    setValue(new_value) {
-        this.background.setFrame(new_value);
+    setItem(new_item) {
+        this.background.setFrame(new_item.slot);
 
-        switch (new_value) {
-            case 1:     // Potion
-                this.item.setFrame(2);
-                break;
-            case 2:     // Shield
-                this.item.setFrame(220);
-                break;
-            case 3:     // Weapon #1
-                this.item.setFrame(198);
-                break;
-            case 0:     // Weapon #2
-                this.item.setFrame(168);
-                break;
-
-        }
+        this.scene.cache.json.get('data:items').forEach(single_data => {
+            if (single_data.id == new_item.itemID) {
+                this.item.setFrame(single_data.frame);
+            }
+        }, this);
     }
 };
