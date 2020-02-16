@@ -45,6 +45,7 @@ class Grid extends Phaser.GameObjects.Container {
         }
     }
 
+    /* Allow to change the grid interactive state (Can we select a tile to remove it) */
     setInteractive(state) {
         this.isInteractive = state;
     }
@@ -138,7 +139,7 @@ class Grid extends Phaser.GameObjects.Container {
                 onComplete: function() {
                     fallingTiles--;
                     if (fallingTiles == 0) {
-                        this.isInteractive = true;
+                        this.resetInteraction();
                     }
                 }
             });
@@ -164,7 +165,7 @@ class Grid extends Phaser.GameObjects.Container {
                     fallingTiles--;
 
                     if (fallingTiles == 0) {
-                        this.isInteractive = true;
+                        this.resetInteraction();
                     }
                 }
             });
@@ -255,6 +256,15 @@ class Grid extends Phaser.GameObjects.Container {
         return this.listConnectedTiles(row, col).length;
     }
 
+    /* Allow the interaction back after the tiles are moved */
+    resetInteraction() {
+        this.setInteractive(true);
+
+        this.emit("INTERACTION_REACTIVATE", this);
+    }
+
+    /* Events */
+
     /* Select the tiles at this position */
     onTileSelected(pointer) {
         /* Only if we can pick a tile */
@@ -280,6 +290,8 @@ class Grid extends Phaser.GameObjects.Container {
         let tilesRemoved = this.listConnectedTiles(row, col);
         let removed = 0;
 
+        this.emit("TILES_REMOVED", this, tilesRemoved.length, this.tiles[row][col].value);
+
         tilesRemoved.forEach(function(tile) {
             removed++;
             this.pool.push(this.tiles[tile.row][tile.col].tile);
@@ -298,9 +310,7 @@ class Grid extends Phaser.GameObjects.Container {
                     }
                 }
             });
-
         }, this);
-
     }
 
 };

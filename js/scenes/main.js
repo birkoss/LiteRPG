@@ -30,6 +30,8 @@ class MainScene extends Phaser.Scene {
 
         this.grid.generate();
         this.grid.show();
+        this.grid.on("TILES_REMOVED", this.onGridTilesRemoved, this);
+        this.grid.on("INTERACTION_REACTIVATE", this.onGridInteractionReactivated, this);
 
         this.grid.x = (this.sys.game.canvas.width - this.grid.getBounds().width) / 2;
         this.grid.y = this.sys.game.canvas.height - this.grid.getBounds().height - this.grid.x;
@@ -47,5 +49,15 @@ class MainScene extends Phaser.Scene {
         this.add.existing(this.enemy);
 
         this.grid.setInteractive(true);
+    }
+
+    /* Events */
+
+    onGridInteractionReactivated(grid) {
+        // @TODO : Change the ennemy delay
+    }
+
+    onGridTilesRemoved(grid, totalTiles, tileValue) {
+        console.log("Removed " + totalTiles + " tiles @ " + tileValue);
     }
 };
