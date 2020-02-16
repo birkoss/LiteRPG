@@ -70,8 +70,4 @@ class Player extends Phaser.GameObjects.Container {
         this.direction = newDirection;
         this.background.scaleX = (this.direction == -1 ? this.pixelScale : this.pixelScale * -1);
     }
-
-    deactivate() {
-        this.background.anims.stop();
-    }
 };

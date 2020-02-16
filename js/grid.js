@@ -34,10 +34,10 @@ class Grid extends Phaser.GameObjects.Container {
     show() {
         for (let row=0; row<this.config.rows; row++) {
             for (let col=0; col<this.config.cols; col++) {
-                let tileX = (this.config.size * col) + (this.config.size / 2);
-                let tileY = (this.config.size * row) + (this.config.size / 2);
-
-                let tile = this.scene.add.sprite(tileX, tileY, "tileset:tiles", this.getValueAt(row, col));
+                let tile = new Tile(this.scene);
+                tile.x = (this.config.size * col) + (this.config.size / 2);
+                tile.y = (this.config.size * row) + (this.config.size / 2);
+                tile.setValue(this.getValueAt(row, col));
                 this.add(tile);
 
                 this.setTile(row, col, tile);
@@ -152,7 +152,7 @@ class Grid extends Phaser.GameObjects.Container {
             tile.y = this.config.size * (movement.row - movement.deltaRow + 1) - this.config.size / 2;
             tile.x = this.config.size * movement.col + this.config.size / 2;
             
-            tile.setFrame(this.getValueAt(movement.row, movement.col));
+            tile.setValue(this.getValueAt(movement.row, movement.col));
             this.setTile(movement.row, movement.col, tile);
 
             this.scene.tweens.add({
