@@ -38,7 +38,7 @@ class MainScene extends Phaser.Scene {
         this.player.y = this.player.background.getBounds().height;
         this.add.existing(this.player);
 
-        this.enemy = new Enemy(this, "skeleton", 100);
+        this.enemy = new Enemy(this, "skeleton", 100, 10, 4, 3);
         this.enemy.animate();
         this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width;
         this.enemy.y = this.enemy.background.getBounds().height;
