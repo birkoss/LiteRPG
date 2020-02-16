@@ -51,7 +51,7 @@ class Player extends Phaser.GameObjects.Container {
 
     setDefense(amount) {
         this.defense = amount;
-        this.txt_defense.text = "Atk:" + this.defense;
+        this.txt_defense.text = "Def:" + this.defense;
     }
 
     damage(amount) {
