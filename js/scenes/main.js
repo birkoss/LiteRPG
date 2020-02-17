@@ -51,7 +51,63 @@ class MainScene extends Phaser.Scene {
         this.enemy.y = this.enemy.background.getBounds().height;
         this.add.existing(this.enemy);
 
+        this.createEffects();
+
         this.grid.setInteractive(true);
+    }
+
+    createEffects() {
+        this.effects = {};
+
+        this.anims.create({
+            key: "attack",
+            frames: [{
+                frame: 10,
+                key: "tileset:effectsLarge"
+            },{
+                frame: 11,
+                key: "tileset:effectsLarge"
+            }],
+            frameRate: 20,
+            yoyo: true,
+            repeat: 2
+        });
+        this.effects['defense'] = this.add.sprite(this.player.x, this.player.y, "tileset:effectsSmall");
+        this.effects['defense'].setScale(1);
+        this.effects['defense'].alpha = 0;
+        this.effects['defense'].on("animationcomplete", function(tween, sprite, element) {
+            element.alpha = 0;
+        }, this);
+
+        this.anims.create({
+            key: "defense",
+            frames: [{
+                frame: 64,
+                key: "tileset:effectsSmall"
+            },{
+                frame: 65,
+                key: "tileset:effectsSmall"
+            },{
+                frame: 66,
+                key: "tileset:effectsSmall"
+            }],
+            frameRate: 8,
+            yoyo: true,
+            repeat: 2
+        });
+        this.effects['attack'] = this.add.sprite(this.enemy.x, this.enemy.y, "tileset:effectsLarge");
+        this.effects['attack'].setScale(1);
+        this.effects['attack'].alpha = 0;
+        this.effects['attack'].on("animationcomplete", function(tween, sprite, element) {
+            element.alpha = 0;
+        }, this);
+    }
+
+    showEffect(name) {
+        if (this.effects[name] != undefined) {
+            this.effects[name].alpha = 1;
+            this.effects[name].anims.play(name, true);
+        }
     }
 
     /* Events */
@@ -75,17 +131,25 @@ class MainScene extends Phaser.Scene {
         /* Prevent the player to select a tile */
         this.grid.setInteractive(false);
 
-        /* Shake the screen and flash red */
-        this.cameras.main.shake(500);
-        this.cameras.main.flash(500, 255, 0, 0);
-
         this.enemy.reset();
+
+        let damage = 0;
 
         if (this.player.defense >= this.enemy.attack) {
             this.player.setDefense(this.player.defense - this.enemy.attack);
         } else {
-            this.player.damage(this.enemy.attack - this.player.defense);
+            damage = Math.max(0, this.enemy.attack - this.player.defense);
             this.player.setDefense(0)
+        }
+
+        if (damage == 0) {
+            this.showEffect("defense");
+        } else {
+            this.player.damage(damage);
+
+            /* Shake the screen and flash red */
+            this.cameras.main.shake(500);
+            this.cameras.main.flash(500, 255, 0, 0);
         }
 
         this.grid.setInteractive(true);
@@ -108,6 +172,8 @@ class MainScene extends Phaser.Scene {
             this.player.setAttack(amounts['atk']);
 
             this.enemy.damage(amounts['atk']);
+
+            this.showEffect("attack");
         }
 
         if (amounts['def'] != undefined) {
@@ -117,7 +183,5 @@ class MainScene extends Phaser.Scene {
         if (amounts['hp'] != undefined) {
             this.player.heal(amounts['hp']);
         }
-
-        console.log(amounts);
     }
 };
