@@ -7,6 +7,7 @@ var config = {
     roundPixels: true,
     scene: [
         BootScene,
+        SplashScene,
         LevelScene,
         MainScene,
     ]

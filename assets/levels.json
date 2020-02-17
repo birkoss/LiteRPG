@@ -1,0 +1,74 @@
+{
+	"001": {
+		"enemy": "skeleton",
+		"health": 50
+	},
+	"002": {
+		"enemy": "skeleton",
+		"health": 60
+	},
+	"003": {
+		"enemy": "skeleton",
+		"health": 80
+	},
+	"004": {
+		"enemy": "skeleton",
+		"health": 100
+	},
+	"005": {
+		"enemy": "skeleton",
+		"health": 120
+	},
+	"006": {
+		"enemy": "skeleton",
+		"health": 200
+	},
+	"007": {
+		"enemy": "skeleton",
+		"health": 50
+	},
+	"008": {
+		"enemy": "skeleton",
+		"health": 60
+	},
+	"009": {
+		"enemy": "skeleton",
+		"health": 80
+	},
+	"010": {
+		"enemy": "skeleton",
+		"health": 100
+	},
+	"011": {
+		"enemy": "skeleton",
+		"health": 120
+	},
+	"012": {
+		"enemy": "skeleton",
+		"health": 200
+	},
+	"013": {
+		"enemy": "skeleton",
+		"health": 100
+	},
+	"014": {
+		"enemy": "skeleton",
+		"health": 120
+	},
+	"015": {
+		"enemy": "skeleton",
+		"health": 200
+	},
+	"016": {
+		"enemy": "skeleton",
+		"health": 100
+	},
+	"017": {
+		"enemy": "skeleton",
+		"health": 120
+	},
+	"018": {
+		"enemy": "skeleton",
+		"health": 200
+	}
+}

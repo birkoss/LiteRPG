@@ -7,6 +7,7 @@ class LevelScene extends Phaser.Scene {
  
     create() {
         this.pages = this.add.container();
+        this.navigation = this.add.container();
         
         this.pageWidth = this.sys.canvas.width;
 
@@ -23,8 +24,6 @@ class LevelScene extends Phaser.Scene {
 
         let savegame = this.game.load();
         let isLocked = false;
-
-        console.log(savegame);
 
         let index = 0;
         for (var levelID in levels) {
@@ -63,6 +62,35 @@ class LevelScene extends Phaser.Scene {
 
         this.maxPages = this.currentPage + 1;
         this.currentPage = 0;
+
+        /* */
+        if (this.maxPages > 1) {
+            for (let page=0; page<this.maxPages; page++) {
+                let navigation = this.add.sprite(0, 0, "tileset:forest");
+                navigation.setOrigin(0);
+                navigation.displayWidth = 40;
+                navigation.displayHeight = 20;
+
+                navigation.x = (page * (navigation.displayWidth + 10));
+
+                if (page == 0) {
+                    navigation.alpha = 0.5;
+                }
+
+                navigation.page = page;
+
+                navigation.setInteractive();
+                navigation.on('pointerup', function (pointer) {
+                    this.currentPage = navigation.page;
+                    this.changePage(0)
+                }, this);
+
+                this.navigation.add(navigation);
+            }
+
+            this.navigation.y = this.sys.game.canvas.height - this.navigation.getBounds().height - 30;
+            this.navigation.x = (this.sys.game.canvas.width - this.navigation.getBounds().width) / 2;
+        }
 
         /* Track the startion and last position */
         this.input.on('pointerdown', function (pointer) {
@@ -127,7 +155,15 @@ class LevelScene extends Phaser.Scene {
             x: this.currentPage * -this.pageWidth,
             duration: 300,
             ease: "Linear",
-
+            callbackScope: this,
+            onComplete: function() {
+                this.navigation.getAll().forEach(single_navigation => {
+                    single_navigation.alpha = 1;
+                });
+                if (this.currentPage < this.navigation.getAll().length) {
+                    this.navigation.getAt(this.currentPage).alpha = 0.5;
+                }
+            }
         });
     }
 
@@ -139,6 +175,8 @@ class LevelScene extends Phaser.Scene {
         
         this.scene.add("popup_" + popup_type, popup, true);
     }
+
+    /* Events */
 
     onLevelPressed(level) {
         this.currentLevel = level;
@@ -163,5 +201,4 @@ class LevelScene extends Phaser.Scene {
                 break;
         }
     }
-
 };
