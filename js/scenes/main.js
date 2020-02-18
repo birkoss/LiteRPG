@@ -1,11 +1,24 @@
-class MainScene extends Phaser.Scene {
+class MainScene extends SceneTransition {
     constructor() {
         super({
             key: 'MainScene'
         });
+
+        this.levelConfig = {ID: "001", data: {health: 100}, index: 1, isLocked: false};
+        this.levelConfig.data.health = 100;
+    }
+
+    init(config) {
+        if (Object.entries(config).length === 0 && config.constructor === Object) {
+            return;
+        }
+        
+        this.levelConfig = config;
     }
 
     create() {
+        this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor("#489848");
+
         /* Generate units animations */
         let unitsData = this.cache.json.get('data:units');
         unitsData.forEach(single_data => {
@@ -28,7 +41,6 @@ class MainScene extends Phaser.Scene {
             minTilesConnected: 3, /* The minimum tiles connected to removed */
             items: this.inventory
         });
-
         this.add.existing(this.grid);
 
         this.grid.generate();
@@ -39,21 +51,58 @@ class MainScene extends Phaser.Scene {
         this.grid.x = (this.sys.game.canvas.width - this.grid.getBounds().width) / 2;
         this.grid.y = this.sys.game.canvas.height - this.grid.getBounds().height - this.grid.x;
 
+        this.panel = this.add.container();
+        this.createPanel();
+
         this.player = new Player(this, "knight", 100);
         this.player.animate();
-        this.player.x = this.player.background.getBounds().width;
-        this.player.y = this.player.background.getBounds().height;
+        this.player.x = this.player.background.getBounds().width + this.grid.x;
+        this.player.y = this.player.background.getBounds().height + this.panel.getBounds().height;
         this.add.existing(this.player);
 
-        this.enemy = new Enemy(this, "skeleton", 100, 10, 4, 3);
+        this.enemy = new Enemy(this, "skeleton", this.levelConfig.data.health, 10, 4, 3);
         this.enemy.animate();
-        this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width;
-        this.enemy.y = this.enemy.background.getBounds().height;
+        this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width - this.grid.x;
+        this.enemy.y = this.enemy.background.getBounds().height + this.panel.getBounds().height;
         this.add.existing(this.enemy);
 
         this.createEffects();
 
-        this.grid.setInteractive(true);
+        this.addTransition(this.panel, SceneTransition.MOVE_DOWN);
+        this.addTransition(this.grid, SceneTransition.MOVE_UP);
+        this.addTransition(this.player, SceneTransition.MOVE_LEFT);
+        this.addTransition(this.enemy, SceneTransition.MOVE_RIGHT);
+        this.startTransition(SceneTransition.IN, function() {
+            this.grid.setInteractive(true);
+        });
+    }
+
+    createPanel() {
+        let ninepatch = new Ninepatch(this, this.grid.getBounds().width, 50, "grey");
+        ninepatch.x = (this.sys.game.canvas.width - ninepatch.getBounds().width) / 2;;
+        ninepatch.y = 10;
+        this.panel.add(ninepatch);
+
+        let label = this.add.bitmapText(0, 0, "font:gui", "Choose a level", 20, Phaser.GameObjects.BitmapText.ALIGN_CENTER);
+        label.tint = 0xdcdcdc;
+        label.setOrigin(0, 0.5);
+        label.x = ninepatch.x + 12;
+        label.y = ninepatch.y + (ninepatch.getBounds().height / 2);
+        this.panel.add(label);
+
+        let close = this.add.sprite(10, 10, "ui:close");
+        close.x = ninepatch.x + ninepatch.getBounds().width - 30;
+        close.y = ((ninepatch.y + ninepatch.getBounds().height) / 2) + 5;
+        close.setScale(2);
+
+        close.setInteractive();
+        close.on('pointerup', function (pointer) {
+            this.startTransition(SceneTransition.OUT, function() {
+                this.scene.start('SplashScene');
+            });
+        }, this);
+
+        this.panel.add(close);
     }
 
     createEffects() {

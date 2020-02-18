@@ -2,8 +2,6 @@ class PopupScene extends Phaser.Scene {
     constructor(type, config) {
         super({key:'PopupScene'});
 
-        console.log("CONSTRUCTOR");
-
         this.popup_type = type;
         this.config = config;
 
@@ -15,7 +13,6 @@ class PopupScene extends Phaser.Scene {
     }
  
     create() {
-       console.log("CREATE");
        this.background = this.add.graphics();
 
        this.background.fillStyle(0x000000, 1);
@@ -26,7 +23,7 @@ class PopupScene extends Phaser.Scene {
     }
 
     init() {
-        console.log("INIT");
+        
     }
 
     setEvent(handler, context) {
@@ -80,18 +77,18 @@ class PopupScene extends Phaser.Scene {
 
         switch (this.getType()) {
             case "level_selector":
-                this.message.text = "Niveau #" + this.config.level.ID;
-                this.message.text += "\n\nTenter de battre\nce niveau?";
+                this.message.text = "Level #" + this.config.level.ID;
+                this.message.text += "\n\nTry to beat\nthis level?";
                 this.message.y = 40;
 
-                button = new CustomButton(this, "Oui", "popup");
+                button = new CustomButton(this, "Yes", "popup");
                 button.x = (background.width - button.getBounds().width) / 2;
                 button.y = (this.message.y * 2) + this.message.height + 30;
                 button.on("BUTTON_CLICKED", this.onButtonClicked, this);
                 this.buttons.add(button);
                 this.popup_container.add(button);
 
-                button = new CustomButton(this, "Non", "popup");
+                button = new CustomButton(this, "No", "popup");
                 button.x = (background.width - button.getBounds().width) / 2;
                 button.y = (this.message.y * 2) + this.message.height + 88;
                 button.on("BUTTON_CLICKED", this.onButtonClicked, this);
@@ -254,10 +251,7 @@ class PopupScene extends Phaser.Scene {
     }
 
     onButtonClicked(button) {
-        console.log(button);
         this.config['buttonText'] = button.label.text;
-
-        console.log("popup.onButtonClicked");
 
         this.close();
     }
@@ -265,8 +259,8 @@ class PopupScene extends Phaser.Scene {
     onPopupClosed() {
         let active_tweens = this.tweens.getAllTweens().filter(tween => tween.isPlaying());
         if (active_tweens.length == 1) {
-            this.events.emit("POPUP_BUTTON_CLOSED", this.getType(), this.config['buttonText'], this.config);
             this.scene.remove();
+            this.events.emit("POPUP_BUTTON_CLOSED", this.getType(), this.config['buttonText'], this.config);
         }
     }
 };

@@ -1,4 +1,4 @@
-class SplashScene extends Phaser.Scene {
+class SplashScene extends SceneTransition {
     constructor() {
         super({
             key:'SplashScene'
@@ -6,18 +6,24 @@ class SplashScene extends Phaser.Scene {
     }
  
     create() {
-        console.log("...");
+
         let button = new CustomButton(this, "Play", "play_game");
         button.x = 100;
         button.y = 100;
         button.on("BUTTON_CLICKED", this.onButtonClicked, this);
         this.add.existing(button);
+
+
+        this.addTransition(button, SceneTransition.FALL_DOWN);
+        this.startTransition(SceneTransition.IN);
     }
 
     onButtonClicked(button) {
         switch(button.getType()) {
             case "play_game":
-                this.scene.start('LevelScene');
+                this.startTransition(SceneTransition.OUT, function() {
+                    this.scene.start('LevelScene');
+                });
                 break;
         }
     }

@@ -1,4 +1,4 @@
-class LevelScene extends Phaser.Scene {
+class LevelScene extends SceneTransition {
     constructor() {
         super({
             key:'LevelScene'
@@ -8,6 +8,9 @@ class LevelScene extends Phaser.Scene {
     create() {
         this.pages = this.add.container();
         this.navigation = this.add.container();
+        this.panel = this.add.container();
+
+        this.createPanel();
         
         this.pageWidth = this.sys.canvas.width;
 
@@ -92,6 +95,12 @@ class LevelScene extends Phaser.Scene {
             this.navigation.x = (this.sys.game.canvas.width - this.navigation.getBounds().width) / 2;
         }
 
+        this.addTransition(this.panel, SceneTransition.FALL_DOWN);
+        this.addTransition(this.pages, SceneTransition.FALL_DOWN);
+        this.addTransition(this.navigation, SceneTransition.FALL_DOWN);
+        this.startTransition(SceneTransition.IN);
+        console.log("first", this);
+
         /* Track the startion and last position */
         this.input.on('pointerdown', function (pointer) {
             this.pages.startX = this.pages.x;
@@ -137,6 +146,34 @@ class LevelScene extends Phaser.Scene {
 
             this.currentLevel = null;
         }, this);   
+    }
+
+    createPanel() {
+        let ninepatch = new Ninepatch(this, this.sys.canvas.width - 20, 50, "grey");
+        ninepatch.x = 10;
+        ninepatch.y = 10;
+        this.panel.add(ninepatch);
+
+        let label = this.add.bitmapText(0, 0, "font:gui", "Choose a level", 20, Phaser.GameObjects.BitmapText.ALIGN_CENTER);
+        label.tint = 0xdcdcdc;
+        label.setOrigin(0, 0.5);
+        label.x = ninepatch.x + 12;
+        label.y = ninepatch.y + (ninepatch.getBounds().height / 2);
+        this.panel.add(label);
+
+        let close = this.add.sprite(10, 10, "ui:close");
+        close.x = ninepatch.x + ninepatch.getBounds().width - 30;
+        close.y = ((ninepatch.y + ninepatch.getBounds().height) / 2) + 5;
+        close.setScale(2);
+
+        close.setInteractive();
+        close.on('pointerup', function (pointer) {
+            this.startTransition(SceneTransition.OUT, function() {
+                this.scene.start('SplashScene');
+            });
+        }, this);
+
+        this.panel.add(close);
     }
 
     changePage(page) {
@@ -185,19 +222,17 @@ class LevelScene extends Phaser.Scene {
     }
 
     onPopupButtonClicked(popup_type, button_text, popupConfig) {
+        this.scene.resume();
+
         switch (popup_type) {
             case "level_selector":
                 switch (button_text) {
-                    case "Oui":
-                        this.scene.start('MainScene', popupConfig.level);
-                        break;
-                    case "Non":
-                        this.scene.resume();
+                    case "Yes":
+                        this.startTransition(SceneTransition.OUT, function() {
+                            this.scene.start('MainScene', popupConfig.level);
+                        });
                         break;
                 }
-                break;
-            case "level_locked":
-                this.scene.resume();
                 break;
         }
     }
