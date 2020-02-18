@@ -97,9 +97,7 @@ class MainScene extends SceneTransition {
 
         close.setInteractive();
         close.on('pointerup', function (pointer) {
-            this.startTransition(SceneTransition.OUT, function() {
-                this.scene.start('SplashScene');
-            });
+            this.showPopup("leave");
         }, this);
 
         this.panel.add(close);
@@ -231,6 +229,22 @@ class MainScene extends SceneTransition {
 
         if (amounts['hp'] != undefined) {
             this.player.heal(amounts['hp']);
+        }
+    }
+
+    onPopupButtonClicked(popup_type, button_text, popupConfig) {
+        this.scene.resume();
+
+        switch (popup_type) {
+            case "leave":
+                switch (button_text) {
+                    case "Yes":
+                        this.startTransition(SceneTransition.OUT, function() {
+                            this.scene.start('LevelScene');
+                        });
+                        break;
+                }
+                break;
         }
     }
 };

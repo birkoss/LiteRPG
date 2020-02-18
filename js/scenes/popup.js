@@ -96,17 +96,17 @@ class PopupScene extends Phaser.Scene {
                 this.popup_container.add(button);
                 break;
             case "leave":
-                this.message.text = "Es-tu sur de\nvouloir quitter\ncette partie?";
+                this.message.text = "Are you sure\nyou want to\nabandon?";
                 this.message.y = 50;
 
-                button = new CustomButton(this, "Oui", "popup");
+                button = new CustomButton(this, "Yes", "popup");
                 button.x = (background.width - button.getBounds().width) / 2;
                 button.y = (this.message.y * 2) + this.message.height + 26;
                 button.on("BUTTON_CLICKED", this.onButtonClicked, this);
                 this.buttons.add(button);
                 this.popup_container.add(button);
 
-                button = new CustomButton(this, "Non", "popup");
+                button = new CustomButton(this, "No", "popup");
                 button.x = (background.width - button.getBounds().width) / 2;
                 button.y = (this.message.y * 2) + this.message.height + 94;
                 button.on("BUTTON_CLICKED", this.onButtonClicked, this);

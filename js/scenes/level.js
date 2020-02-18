@@ -204,15 +204,6 @@ class LevelScene extends SceneTransition {
         });
     }
 
-    showPopup(popup_type, popup_config) {
-        this.scene.pause();
-
-        let popup = new PopupScene(popup_type, popup_config);
-        popup.setEvent(this.onPopupButtonClicked, this);
-        
-        this.scene.add("popup_" + popup_type, popup, true);
-    }
-
     /* Events */
 
     onLevelPressed(level) {

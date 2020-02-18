@@ -16,6 +16,8 @@ class SceneTransition extends Phaser.Scene {
         this.transitions = [];
 	}
 
+	/* Transitions */
+
 	addTransition(target, type, config) {
 		this.transitions.push({
 			target: target,
@@ -27,8 +29,6 @@ class SceneTransition extends Phaser.Scene {
 
 	startTransition(type, onCompleteCallback) {
 		this.onCompleteCallback = onCompleteCallback;
-
-		console.log(this.transitions);
 
 		this.transitions.forEach(single_transition => {
 			single_transition.isDone = false;
@@ -63,7 +63,6 @@ class SceneTransition extends Phaser.Scene {
 	                    ease: 'Cubic',
 	                    duration: 300,
 	                    onComplete: function () {
-	                    	console.log("onComplete");
 	                    	this.onTransitionCompleted(single_transition);
 	                    },
 	                    onCompleteScope: this
@@ -98,7 +97,6 @@ class SceneTransition extends Phaser.Scene {
 	                    ease: 'Cubic',
 	                    duration: 300,
 	                    onComplete: function () {
-	                    	console.log("onComplete X", single_transition.target.x);
 	                    	this.onTransitionCompleted(single_transition);
 	                    },
 	                    onCompleteScope: this
@@ -108,30 +106,24 @@ class SceneTransition extends Phaser.Scene {
 		});
 	}
 
+	/* Popup */
+
+    showPopup(type, config) {
+        this.scene.pause();
+
+        let popup = new PopupScene(type, config);
+        popup.setEvent(this.onPopupButtonClicked, this);
+        
+        this.scene.add("popup_" + type, popup, true);
+    }
 
 	/* Events */
 
 	onTransitionCompleted(transition) {
 		transition.isDone = true;
 
-		console.log("onTransitionCompleted", this.onCompleteCallback);
-
 		if (this.onCompleteCallback != undefined && this.transitions.filter(single_transition => !single_transition.isDone).length == 0) {
 			this.onCompleteCallback();
 		}
 	}
 };
-
-/*
-
-                this.tweens.add({
-                    targets: this.levels_container.getAt(i),
-                    y: this.levels_container.getAt(i).destination_y,
-                    ease: 'Cubic',
-                    duration: 300,
-                    delay: i * 50,
-                    onComplete: this.onLevelSelectorVisible,
-                    onCompleteScope: this
-                });
-
-*/
