@@ -214,7 +214,6 @@ class MainScene extends SceneTransition {
 
     attack(attacker, defender, callback) {
         let originalX = this.players[attacker].x;
-        let me = this;
 
         let damage = Math.max(0, this.players[attacker].attack - this.players[defender].defense);
 
@@ -353,8 +352,6 @@ class MainScene extends SceneTransition {
             }
         }, this);
 
-        var me = this;
-
         if (amounts['atk'] != undefined) {
             this.showLabel(tile.x, tile.y, "attack", amounts['atk'], function() {
                 this.attack("player", "enemy", function() {
@@ -364,16 +361,15 @@ class MainScene extends SceneTransition {
         }
 
         if (amounts['def'] != undefined) {
-            amounts['def'] = 100;
             this.showLabel(tile.x, tile.y, "defense", amounts['def'], function() {
-                me.endPlayerTurn();
-            });
+                this.endPlayerTurn();
+            }.bind(this));
         }
 
         if (amounts['hp'] != undefined) {
             this.showLabel(tile.x, tile.y, "health", amounts['hp'], function() {
-                me.endPlayerTurn();
-            });
+                this.endPlayerTurn();
+            }.bind(this));
         }
     }
 
