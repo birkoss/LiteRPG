@@ -74,7 +74,7 @@ class MainScene extends SceneTransition {
         this.add.existing(this.stats['player']);
 
         this.stats['enemy'] = new Stat(this, this.players['enemy']);
-        this.stats['enemy'].x = this.panel.x + 300;
+        this.stats['enemy'].x = this.sys.game.canvas.width - this.stats['enemy'].getBounds().width - this.grid.x;
         this.stats['enemy'].y = this.panel.y + this.panel.getBounds().height + this.panel.y;
         this.stats['enemy'].updateStat("attack", 10);
         this.stats['enemy'].updateStat("defense", 3);
@@ -85,7 +85,9 @@ class MainScene extends SceneTransition {
         this.addTransition(this.panel, SceneTransition.MOVE_DOWN);
         this.addTransition(this.grid, SceneTransition.MOVE_UP);
         this.addTransition(this.players['player'], SceneTransition.MOVE_LEFT);
-        this.addTransition(this.players['enemy'], SceneTransition.MOVE_RIGHT);
+        this.addTransition(this.players['enemy'], SceneTransition.MOVE_RIGHT);        
+        this.addTransition(this.stats['player'], SceneTransition.MOVE_LEFT);
+        this.addTransition(this.stats['enemy'], SceneTransition.MOVE_RIGHT);
         this.startTransition(SceneTransition.IN, function() {
             this.grid.setInteractive(true);
         });
