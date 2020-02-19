@@ -3,23 +3,27 @@
 	"frame": 198,
 	"modifiers": {
 		"atk": 1
-	}
+	},
+	"rate": 100
 },{
 	"id": "axe",
 	"frame": 166,
 	"modifiers": {
 		"atk": 2
-	}
+	},
+	"rate": 60
 },{
 	"id": "potion",
 	"frame": 2,
 	"modifiers": {
 		"hp": 2
-	}
+	},
+	"rate": 80
 },{
 	"id": "shield",
 	"frame": 220,
 	"modifiers": {
 		"def": 1
-	}
+	},
+	"rate": 100
 }]

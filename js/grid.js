@@ -15,6 +15,24 @@ class Grid extends Phaser.GameObjects.Container {
 
     /* Generate the default grid */
     generate() {
+        /* Generate items pool */
+        this.items_pool = [];
+
+        this.config.items.forEach((single_item, index) => {
+            this.scene.cache.json.get('data:items').forEach(single_data => {
+                if (single_data.id == single_item) {
+                    for(let i=0; i<single_data.rate; i++) {
+                        this.items_pool.push({
+                            slot: index,
+                            itemID: single_item
+                        });
+                    }
+                }
+            }, this);
+        });
+
+        Phaser.Utils.Array.Shuffle(this.items_pool);
+        
         for (let y=0; y<this.config.rows; y++) {
             this.tiles[y] = [];
 
@@ -46,11 +64,7 @@ class Grid extends Phaser.GameObjects.Container {
     }
 
     pickItems() {
-        let index = Phaser.Math.RND.between(0, this.config.items.length - 1);
-        return {
-            slot: index,
-            itemID: this.config.items[index]
-        };
+        return this.items_pool[ Phaser.Math.RND.between(0, this.items_pool.length - 1) ]
     }
 
     /* Allow to change the grid interactive state (Can we select a tile to remove it) */
