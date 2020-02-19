@@ -71,7 +71,7 @@ class Stat extends Phaser.GameObjects.Container {
                 if (stat != "attack") {
                     /* Animate and increment the new value */
                     this.timer = this.scene.time.addEvent({
-                        delay: 100,                // ms
+                        delay: (100 * 10) / newValue,    // 10 should take 100ms in total
                         callbackScope: this,
                         callback: function() {
                             this.player[stat] += (newValue > 0 ? 1 : -1);
