@@ -4,7 +4,6 @@ class Tile extends Phaser.GameObjects.Container {
         super(scene, 0, 0);
         scene.add.existing(this);
 
-        this.pixelScale = 2;
         this.create();
     }
 
@@ -13,7 +12,7 @@ class Tile extends Phaser.GameObjects.Container {
         this.add(this.background);
 
         this.item = this.scene.add.sprite(0, 0, "tileset:items", 1);
-        //this.item.setScale(this.pixelScale);
+        this.item.setScale(2);
         this.add(this.item);
     }
 

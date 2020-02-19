@@ -276,7 +276,6 @@ class Grid extends Phaser.GameObjects.Container {
 
     /* Events */
 
-    /* Select the tiles at this position */
     onTileSelected(pointer) {
         /* Only if we can pick a tile */
         if (!this.isInteractive) {
@@ -302,7 +301,7 @@ class Grid extends Phaser.GameObjects.Container {
 
         let removed = 0;
 
-        this.emit("TILES_REMOVED", this, connectedTiles.length, this.getItemAt(row, col));
+        this.emit("TILES_REMOVED", this, connectedTiles.length, this.getItemAt(row, col), this.tiles[row][col].tile);
 
         connectedTiles.forEach(function(tile) {
             removed++;

@@ -171,7 +171,7 @@ class PopupScene extends Phaser.Scene {
                 this.popup_container.add(button);
                 break;
             case "type_locked":
-            console.log(this.config.unlockData);
+
                 let typeID = "";
                 let limit = 0;
                 if (this.config.unlockData != undefined) {
@@ -249,6 +249,8 @@ class PopupScene extends Phaser.Scene {
     getType() {
         return this.popup_type;
     }
+
+    /* Events */
 
     onButtonClicked(button) {
         this.config['buttonText'] = button.label.text;

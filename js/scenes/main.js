@@ -56,15 +56,28 @@ class MainScene extends SceneTransition {
 
         this.player = new Player(this, "knight", 100);
         this.player.animate();
-        this.player.x = this.player.background.getBounds().width + this.grid.x;
+        this.player.x = this.player.background.getBounds().width + this.grid.x + 80;
         this.player.y = this.player.background.getBounds().height + this.panel.getBounds().height;
         this.add.existing(this.player);
 
-        this.enemy = new Enemy(this, "skeleton", this.levelConfig.data.health, 10, 4, 3);
+        this.enemy = new Player(this, "skeleton", this.levelConfig.data.health, 3);
+
+        this.enemy.face(-1);
         this.enemy.animate();
-        this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width - this.grid.x;
+        this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width - this.grid.x - 70;
         this.enemy.y = this.enemy.background.getBounds().height + this.panel.getBounds().height;
         this.add.existing(this.enemy);
+
+        this.stats = {};
+        this.stats['player'] = new Stat(this, this.player);
+        this.stats['player'].x = this.panel.x;
+        this.stats['player'].y = this.panel.y + this.panel.getBounds().height + this.panel.y;
+        this.add.existing(this.stats['player']);
+
+        this.stats['enemy'] = new Stat(this, this.enemy);
+        this.stats['enemy'].x = this.panel.x + 300;
+        this.stats['enemy'].y = this.panel.y + this.panel.getBounds().height + this.panel.y;
+        this.add.existing(this.stats['enemy']);
 
         this.createEffects();
 
@@ -79,8 +92,8 @@ class MainScene extends SceneTransition {
 
     createPanel() {
         let ninepatch = new Ninepatch(this, this.grid.getBounds().width, 50, "grey");
-        ninepatch.x = (this.sys.game.canvas.width - ninepatch.getBounds().width) / 2;;
-        ninepatch.y = 10;
+        ninepatch.x = 0;
+        ninepatch.y = 0;
         this.panel.add(ninepatch);
 
         let label = this.add.bitmapText(0, 0, "font:gui", "Choose a level", 20, Phaser.GameObjects.BitmapText.ALIGN_CENTER);
@@ -92,7 +105,7 @@ class MainScene extends SceneTransition {
 
         let close = this.add.sprite(10, 10, "ui:close");
         close.x = ninepatch.x + ninepatch.getBounds().width - 30;
-        close.y = ((ninepatch.y + ninepatch.getBounds().height) / 2) + 5;
+        close.y = ((ninepatch.y + ninepatch.getBounds().height) / 2);
         close.setScale(2);
 
         close.setInteractive();
@@ -101,10 +114,17 @@ class MainScene extends SceneTransition {
         }, this);
 
         this.panel.add(close);
+
+        this.panel.x = (this.sys.game.canvas.width - this.panel.getBounds().width) / 2;
+        this.panel.y = 10;
     }
 
     createEffects() {
-        this.effects = {};
+        this.effects = {
+            "label": this.add.bitmapText(10, 10, "font:gui-outline", "100", 20, Phaser.GameObjects.BitmapText.ALIGN_CENTER).setOrigin(0.5)
+        };
+
+        this.effects['label'].alpha = 0;
 
         this.anims.create({
             key: "attack",
@@ -157,6 +177,62 @@ class MainScene extends SceneTransition {
         }
     }
 
+    showLabel(x, y, stat, value, callback) {
+        this.effects['label'].x = this.grid.x + x - 2;
+        this.effects['label'].y = this.grid.y + y;
+        this.effects['label'].text = value;
+        this.effects['label'].alpha = 1;
+
+        let destX = this.stats['player'].x + this.stats['player'].stats[stat].x + (this.stats['player'].stats[stat].width / 2);
+        let destY = this.stats['player'].y + this.stats['player'].stats[stat].y + (this.stats['player'].stats[stat].height / 2);
+
+        /* Dynamic duration depending on the distance */
+        let distance = Phaser.Math.Distance.Between(this.effects['label'].x, this.effects['label'].y, destX, destY);
+        let duration = 800 * distance / 600;
+
+        this.tweens.add({
+            targets: this.effects['label'],
+            x: destX,
+            y: destY,
+            duration: duration,
+            ease: "Exponential.In",
+            callbackScope: this,
+            onComplete: function() {
+                this.effects['label'].alpha = 0;
+                this.stats['player'].updateStat(stat, value, callback);
+            }
+        });
+    }
+
+    attack(attacker, defender) {
+        let originalX = this.player.x;
+        let me = this;
+
+        this.tweens.add({
+            targets: this.player,
+            x: this.enemy.x,
+            duration: 180,
+            ease: "Exponential.In",
+            callbackScope: this,
+            onComplete: function() {
+                this.showEffect("attack");
+
+                this.stats[defender].updateStat("health", -this.player.attack);
+
+                this.tweens.add({
+                    targets: this.player,
+                    x: originalX,
+                    duration: 180,
+                    ease: "Exponential.In",
+                    callbackScope: this,
+                    onComplete: function() {
+
+                    }
+                });
+            }
+        });
+    }
+
     /* Events */
 
     onGridInteractionReactivated(grid) {
@@ -170,8 +246,11 @@ class MainScene extends SceneTransition {
             return;
         }
 
+        this.stats['player'].updateTurn();
+        this.stats['enemy'].updateTurn();
+
         /* The enemy is not ready to attack */
-        if (!this.enemy.isReady()) {
+        if (!this.stats['enemy'].isReady()) {
             return;
         }
             
@@ -202,8 +281,7 @@ class MainScene extends SceneTransition {
         this.grid.setInteractive(true);
     }
 
-    onGridTilesRemoved(grid, totalTiles, item) {
-
+    onGridTilesRemoved(grid, totalTiles, item, tile) {
         let amounts = {};
 
         /* Calculate all amounts from this items */
@@ -216,19 +294,18 @@ class MainScene extends SceneTransition {
         }, this);
 
         if (amounts['atk'] != undefined) {
-            this.player.setAttack(amounts['atk']);
-
-            this.enemy.damage(amounts['atk']);
-
-            this.showEffect("attack");
+            var me = this;
+            this.showLabel(tile.x, tile.y, "attack", amounts['atk'], function() {
+                me.attack("player", "enemy");
+            });
         }
 
         if (amounts['def'] != undefined) {
-            this.player.setDefense(amounts['def'] + this.player.defense);
+            this.showLabel(tile.x, tile.y, "defense", amounts['def']);
         }
 
         if (amounts['hp'] != undefined) {
-            this.player.heal(amounts['hp']);
+            this.showLabel(tile.x, tile.y, "health", amounts['hp']);
         }
     }
 

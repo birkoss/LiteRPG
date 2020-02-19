@@ -18,6 +18,8 @@ class SplashScene extends SceneTransition {
         this.startTransition(SceneTransition.IN);
     }
 
+    /* Events */
+
     onButtonClicked(button) {
         switch(button.getType()) {
             case "play_game":
