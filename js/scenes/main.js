@@ -16,6 +16,8 @@ class MainScene extends SceneTransition {
     }
 
     create() {
+        let savegame = game.load();
+
         this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor("#489848");
 
         /* Generate units animations */
@@ -29,8 +31,6 @@ class MainScene extends SceneTransition {
             });
         }, this);
 
-        this.inventory = ["shield", "potion", "dagger", "axe"];
-
         this.grid = new Grid(this, {
             size: 50,           /* Size of each tile */
             rows: 10,            /* Height of the grid */
@@ -38,7 +38,7 @@ class MainScene extends SceneTransition {
             destroySpeed: 200,
             fallSpeed: 80,
             minTilesConnected: 3, /* The minimum tiles connected to removed */
-            items: this.inventory
+            items: savegame.player.items
         });
         this.add.existing(this.grid);
 
@@ -54,7 +54,7 @@ class MainScene extends SceneTransition {
         this.createPanel();
 
         this.players = {};
-        this.players['player'] = new Player(this, "knight", 100);
+        this.players['player'] = new Player(this, "knight", savegame.player.health);
         this.players['player'].animate();
         this.players['player'].x = this.players['player'].background.getBounds().width + this.grid.x + 80;
         this.players['player'].y = this.players['player'].background.getBounds().height + this.panel.getBounds().height;

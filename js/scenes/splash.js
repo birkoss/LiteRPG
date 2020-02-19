@@ -6,7 +6,6 @@ class SplashScene extends SceneTransition {
     }
  
     create() {
-
         let button = new CustomButton(this, "Play", "play_game");
         button.x = 100;
         button.y = 100;
