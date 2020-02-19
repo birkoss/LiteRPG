@@ -316,8 +316,7 @@ class Grid extends Phaser.GameObjects.Container {
                     removed--;
                     if (removed == 0) {
                         this.removeConnectedTiles(row, col);
-
-                        this.makeTilesFall();
+                        //this.makeTilesFall();
                     }
                 }
             });

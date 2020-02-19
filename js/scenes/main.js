@@ -54,37 +54,39 @@ class MainScene extends SceneTransition {
         this.panel = this.add.container();
         this.createPanel();
 
-        this.player = new Player(this, "knight", 100);
-        this.player.animate();
-        this.player.x = this.player.background.getBounds().width + this.grid.x + 80;
-        this.player.y = this.player.background.getBounds().height + this.panel.getBounds().height;
-        this.add.existing(this.player);
+        this.players = {};
+        this.players['player'] = new Player(this, "knight", 100);
+        this.players['player'].animate();
+        this.players['player'].x = this.players['player'].background.getBounds().width + this.grid.x + 80;
+        this.players['player'].y = this.players['player'].background.getBounds().height + this.panel.getBounds().height;
+        this.add.existing(this.players['player']);
 
-        this.enemy = new Player(this, "skeleton", this.levelConfig.data.health, 3);
-
-        this.enemy.face(-1);
-        this.enemy.animate();
-        this.enemy.x = this.sys.game.canvas.width - this.enemy.background.getBounds().width - this.grid.x - 70;
-        this.enemy.y = this.enemy.background.getBounds().height + this.panel.getBounds().height;
-        this.add.existing(this.enemy);
+        this.players['enemy'] = new Player(this, "skeleton", this.levelConfig.data.health, 1);
+        this.players['enemy'].face(-1);
+        this.players['enemy'].animate();
+        this.players['enemy'].x = this.sys.game.canvas.width - this.players['enemy'].background.getBounds().width - this.grid.x - 70;
+        this.players['enemy'].y = this.players['enemy'].background.getBounds().height + this.panel.getBounds().height;
+        this.add.existing(this.players['enemy']);
 
         this.stats = {};
-        this.stats['player'] = new Stat(this, this.player);
+        this.stats['player'] = new Stat(this, this.players['player']);
         this.stats['player'].x = this.panel.x;
         this.stats['player'].y = this.panel.y + this.panel.getBounds().height + this.panel.y;
         this.add.existing(this.stats['player']);
 
-        this.stats['enemy'] = new Stat(this, this.enemy);
+        this.stats['enemy'] = new Stat(this, this.players['enemy']);
         this.stats['enemy'].x = this.panel.x + 300;
         this.stats['enemy'].y = this.panel.y + this.panel.getBounds().height + this.panel.y;
+        this.stats['enemy'].updateStat("attack", 10);
+        this.stats['enemy'].updateStat("defense", 3);
         this.add.existing(this.stats['enemy']);
 
         this.createEffects();
 
         this.addTransition(this.panel, SceneTransition.MOVE_DOWN);
         this.addTransition(this.grid, SceneTransition.MOVE_UP);
-        this.addTransition(this.player, SceneTransition.MOVE_LEFT);
-        this.addTransition(this.enemy, SceneTransition.MOVE_RIGHT);
+        this.addTransition(this.players['player'], SceneTransition.MOVE_LEFT);
+        this.addTransition(this.players['enemy'], SceneTransition.MOVE_RIGHT);
         this.startTransition(SceneTransition.IN, function() {
             this.grid.setInteractive(true);
         });
@@ -139,7 +141,7 @@ class MainScene extends SceneTransition {
             yoyo: true,
             repeat: 2
         });
-        this.effects['defense'] = this.add.sprite(this.player.x, this.player.y, "tileset:effectsSmall");
+        this.effects['defense'] = this.add.sprite(this.players['player'].x, this.players['player'].y, "tileset:effectsSmall");
         this.effects['defense'].setScale(1);
         this.effects['defense'].alpha = 0;
         this.effects['defense'].on("animationcomplete", function(tween, sprite, element) {
@@ -162,7 +164,7 @@ class MainScene extends SceneTransition {
             yoyo: true,
             repeat: 2
         });
-        this.effects['attack'] = this.add.sprite(this.enemy.x, this.enemy.y, "tileset:effectsLarge");
+        this.effects['attack'] = this.add.sprite(this.players['enemy'].x, this.players['enemy'].y, "tileset:effectsLarge");
         this.effects['attack'].setScale(1);
         this.effects['attack'].alpha = 0;
         this.effects['attack'].on("animationcomplete", function(tween, sprite, element) {
@@ -170,8 +172,14 @@ class MainScene extends SceneTransition {
         }, this);
     }
 
-    showEffect(name) {
+    showEffect(name, x, y) {
         if (this.effects[name] != undefined) {
+            if (x != undefined) {
+                this.effects[name].x = x;
+            }
+            if (y != undefined) {
+                this.effects[name].y = y;
+            }
             this.effects[name].alpha = 1;
             this.effects[name].anims.play(name, true);
         }
@@ -204,49 +212,101 @@ class MainScene extends SceneTransition {
         });
     }
 
-    attack(attacker, defender) {
-        let originalX = this.player.x;
+    attack(attacker, defender, callback) {
+        let originalX = this.players[attacker].x;
         let me = this;
 
+        let damage = Math.max(0, this.players[attacker].attack - this.players[defender].defense);
+
         this.tweens.add({
-            targets: this.player,
-            x: this.enemy.x,
+            targets: this.players[attacker],
+            x: this.players[defender].x,
             duration: 180,
             ease: "Exponential.In",
             callbackScope: this,
             onComplete: function() {
-                this.showEffect("attack");
 
-                this.stats[defender].updateStat("health", -this.player.attack);
+                if (damage > 0) {
+                    this.showEffect("attack", this.players[defender].x, this.players[defender].y);
+
+                    this.stats[defender].updateStat("health", -damage);
+                    if (attacker == "enemy") {
+                        /* If the enemy attack the player, empty player's defense */
+                        this.stats[defender].updateStat("defense", -this.players[defender].defense);
+                    }
+
+                    if (attacker == "enemy") {
+                        /* Shake the screen and flash red */
+                        this.cameras.main.shake(500);
+                        this.cameras.main.flash(500, 255, 0, 0);
+                    }
+                } else {
+                    if (attacker == "enemy") {
+                        /* Remove the player's defense depending on the enemy's attack */
+                        this.stats[defender].updateStat("defense", -Math.min(this.players[attacker].attack, this.players[defender].defense));
+                    }
+                    this.showEffect("defense", this.players[defender].x, this.players[defender].y);
+                }
 
                 this.tweens.add({
-                    targets: this.player,
+                    targets: this.players[attacker],
                     x: originalX,
                     duration: 180,
                     ease: "Exponential.In",
                     callbackScope: this,
                     onComplete: function() {
-
+                        if (callback != undefined) {
+                            callback();
+                        }
                     }
                 });
             }
         });
     }
 
-    /* Events */
+    endPlayerTurn() {
+        /* Active effects like poison */
+        this.stats['player'].updateTurn();
 
-    onGridInteractionReactivated(grid) {
-        if (!this.player.isAlive()) {
-            alert("Player is dead!");
-            return;
-        }
-
-        if (!this.enemy.isAlive()) {
+        if (!this.players['enemy'].isAlive()) {
             alert("Enemy is dead!");
             return;
         }
 
-        this.stats['player'].updateTurn();
+        /* Active effects like poison */
+        this.stats['enemy'].updateTurn(function() {
+            /* The enemy is not ready to attack */
+            if (this.stats['enemy'].isReady()) {
+                this.attack("enemy", "player", function() {
+                    this.stats['enemy'].resetDelay();
+                    this.endEnemyTurn();
+                }.bind(this));
+            } else {
+                this.endEnemyTurn();
+            }
+        }.bind(this));
+    }
+
+    endEnemyTurn() {
+        if (!this.players['player'].isAlive()) {
+            alert("Player is dead!");
+            return;
+        }
+
+        this.grid.makeTilesFall();
+    }
+
+    /* Events */
+
+    onGridInteractionReactivated(grid) {
+        return; // @TODO : Remove completely
+
+        if (!this.players['player'].isAlive()) {
+            alert("Player is dead!");
+            return;
+        }
+
+
         this.stats['enemy'].updateTurn();
 
         /* The enemy is not ready to attack */
@@ -257,21 +317,21 @@ class MainScene extends SceneTransition {
         /* Prevent the player to select a tile */
         this.grid.setInteractive(false);
 
-        this.enemy.reset();
+        this.players['enemy'].reset();
 
         let damage = 0;
 
-        if (this.player.defense >= this.enemy.attack) {
-            this.player.setDefense(this.player.defense - this.enemy.attack);
+        if (this.players['player'].defense >= this.players['enemy'].attack) {
+            this.players['player'].setDefense(this.players['player'].defense - this.players['enemy'].attack);
         } else {
-            damage = Math.max(0, this.enemy.attack - this.player.defense);
-            this.player.setDefense(0)
+            damage = Math.max(0, this.players['enemy'].attack - this.players['player'].defense);
+            this.players['player'].setDefense(0)
         }
 
         if (damage == 0) {
             this.showEffect("defense");
         } else {
-            this.player.damage(damage);
+            this.players['player'].damage(damage);
 
             /* Shake the screen and flash red */
             this.cameras.main.shake(500);
@@ -293,19 +353,27 @@ class MainScene extends SceneTransition {
             }
         }, this);
 
+        var me = this;
+
         if (amounts['atk'] != undefined) {
-            var me = this;
             this.showLabel(tile.x, tile.y, "attack", amounts['atk'], function() {
-                me.attack("player", "enemy");
-            });
+                this.attack("player", "enemy", function() {
+                    this.endPlayerTurn();
+                }.bind(this));
+            }.bind(this));
         }
 
         if (amounts['def'] != undefined) {
-            this.showLabel(tile.x, tile.y, "defense", amounts['def']);
+            amounts['def'] = 100;
+            this.showLabel(tile.x, tile.y, "defense", amounts['def'], function() {
+                me.endPlayerTurn();
+            });
         }
 
         if (amounts['hp'] != undefined) {
-            this.showLabel(tile.x, tile.y, "health", amounts['hp']);
+            this.showLabel(tile.x, tile.y, "health", amounts['hp'], function() {
+                me.endPlayerTurn();
+            });
         }
     }
 

@@ -104,13 +104,17 @@ class Stat extends Phaser.GameObjects.Container {
         });
     }
 
-    updateTurn() {
+    updateTurn(callback) {
         if (this.player.maxDelay > 0) {
-            this.updateStat("delay", -1);
+            this.updateStat("delay", -1, callback);
         }
     }
 
     isReady() {
         return this.player.delay == 0 && this.player.maxDelay > 0;
+    }
+
+    resetDelay() {
+        this.updateStat("delay", this.player.maxDelay);
     }
 };
