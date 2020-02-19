@@ -12,6 +12,12 @@ class Ninepatch extends Phaser.GameObjects.Container {
     }
 
     create() {
+        this.background = this.scene.add.sprite(0, 0, "blank", 0);
+        this.background.setOrigin(0);
+        this.background.displayWidth = this.wantedWidth;
+        this.background.displayHeight = this.wantedHeight;
+        this.add(this.background);
+
         let cornerTL = this.scene.add.sprite(0, 0, "ui:ninepatch-" + this.spriteSheet, 0);
         cornerTL.setOrigin(0);
         this.add(cornerTL);

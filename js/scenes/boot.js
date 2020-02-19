@@ -16,6 +16,8 @@ class BootScene extends Phaser.Scene {
         this.load.spritesheet('ui:long_buttons', 'assets/ui/long_buttons.png', { frameWidth: 190, frameHeight: 49 });
         this.load.spritesheet('ui:ninepatch-grey', 'assets/ui/ninepatch/grey.png', { frameWidth: 16, frameHeight: 16 });
 
+        this.load.image('blank', 'assets/blank.png');
+
         this.load.image('popup:background', 'assets/ui/popup_background.png');
         this.load.image('popup:inside_small', 'assets/ui/popup_inside_small.png');
         this.load.image('popup:inside_medium', 'assets/ui/popup_inside_medium.png');
@@ -33,7 +35,7 @@ class BootScene extends Phaser.Scene {
  
     create() {
         //this.scene.start('SplashScene');
-        this.scene.start('MainScene');
-        //this.scene.start('LevelScene');
+        //this.scene.start('MainScene');
+        this.scene.start('LevelScene');
     }
 };

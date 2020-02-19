@@ -75,7 +75,7 @@ class Stat extends Phaser.GameObjects.Container {
                         callbackScope: this,
                         callback: function() {
                             this.player[stat] += (newValue > 0 ? 1 : -1);
-                            this.stats[stat].text = this.player[stat];
+                            this.stats[stat].setText(this.player[stat]);
 
                             if (callback != undefined && (this.timer.repeatCount == 0 || isNaN(this.timer.repeatCount))) {
                                 callback();

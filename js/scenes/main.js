@@ -4,8 +4,7 @@ class MainScene extends SceneTransition {
             key: 'MainScene'
         });
 
-        this.levelConfig = {ID: "001", data: {health: 100}, index: 1, isLocked: false};
-        this.levelConfig.data.health = 100;
+        this.levelConfig = {ID: "001", data: {health: 40}, index: 1, isLocked: false};
     }
 
     init(config) {
@@ -229,7 +228,7 @@ class MainScene extends SceneTransition {
                     this.showEffect("attack", this.players[defender].x, this.players[defender].y);
 
                     this.stats[defender].updateStat("health", -damage);
-                    if (attacker == "enemy") {
+                    if (attacker == "enemy" && this.players[defender].defense > 0) {
                         /* If the enemy attack the player, empty player's defense */
                         this.stats[defender].updateStat("defense", -this.players[defender].defense);
                     }

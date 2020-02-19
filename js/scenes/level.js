@@ -69,7 +69,9 @@ class LevelScene extends SceneTransition {
         /* */
         if (this.maxPages > 1) {
             for (let page=0; page<this.maxPages; page++) {
-                let navigation = this.add.sprite(0, 0, "tileset:forest");
+
+                let navigation = this.add.sprite(0, 0, "blank");
+                navigation.tint = 0xffffff;
                 navigation.setOrigin(0);
                 navigation.displayWidth = 40;
                 navigation.displayHeight = 20;
